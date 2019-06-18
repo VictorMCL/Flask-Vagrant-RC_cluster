@@ -2,6 +2,8 @@
 
 Este repositorio es un proyecto pensado para gestion del despliegue de maquinas virtuales en un cluster usando vagrant. el proposito de esta herremienta es automatizar el despliegue de maquina virtuales de manera remota usando un micro-framework escrito en python llamado Flask.
 
+<img src="img/proyecto.png">
+
 # Requerimientos
 
 Para llevar a cabo este proyecto se requiere:
