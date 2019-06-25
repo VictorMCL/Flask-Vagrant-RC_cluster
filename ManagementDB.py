@@ -9,16 +9,16 @@ VM = {"DB": {"Status" : "Not create", "Hipervisor" : "virtualbox"}}
 def Readjson():
     if os.path.isfile(envConfig.JSONFILE) == True:
         if checkDB():
-            print ("Base de datos vacia")
+            return("Base de datos vacia")
         else:
             with open(envConfig.JSONFILE) as data_file:    
                 data = json.load(data_file)
                 if not data:
-                    print ("Base de datos vacia")
+                    return("Base de datos vacia")
                 else:
-                    pprint(data)
+                    return(data)
     else:
-        print ("No se encontro DB. Restaurar DB")
+        return("No se encontro DB. Restaurar DB")
 
 def WriteElemt(elementNEW, VM_status):
     data = {}
