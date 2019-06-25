@@ -13,7 +13,6 @@ def VagrantStatus(NameProyect):
     myCmd = os.popen("vagrant status | grep \) | tr -s ' '").read()
     lineas = myCmd.split("\n")
     lineas.pop(len(lineas)-1)
-    print lineas
     for linea in lineas:
         data = linea.split()
         if 'not created' in linea:
@@ -33,6 +32,7 @@ def VagrantUP(NameProyect, VM):
         if not lines:
             break
         print(lines.rstrip())
+    ManagementDB.WriteElemt(NameProyect, VagrantStatus(NameProyect))
     os.chdir(envConfig.HOME)
 
 def VagrantHalt(NameProyect, VMs):
@@ -81,11 +81,16 @@ def VagrantBoxList():
     return myCmd
 
 def VagrantBoxAdd(VM):
+    command = subprocess.Popen(["vagrant","box","add",VM],stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    while True:
+        lines = command.stdout.readline()
+        if not lines:
+            break
+        print(lines.rstrip())
+
+def VagrantBoxRemove(VM):
     myCmd = os.popen("vagrant box remove " + VM).read()
     return myCmd
-
-
-
 
 
 #VagrantDestroy('ubuntu', '')
