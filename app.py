@@ -114,5 +114,32 @@ def deleteVM(NameProyect='default', VMs=''):
     else:
         return 'No existe en DB\n'
 
+#curl http://localhost:8000/StatusDB
+@app.route('/StatusDB')
+def statuDB():
+    return  jsonify(ManagementDB.Readjson())
+
+#curl http://localhost:8000/VagrantVersion
+@app.route('/VagrantVersion')
+def VagrantVersion():
+    return  jsonify(VagrantGest.VagrantVersion())
+
+#curl http://localhost:8000/VagrantBoxList
+@app.route('/VagrantBoxList')
+def VagrantBoxList():
+    return  jsonify(VagrantGest.VagrantBoxList())
+
+#curl http://localhost:8000/VagrantBoxAdd/ubuntu/trusty64
+@app.route('/VagrantBoxAdd/<path:Box>')
+def VagrantBoxAdd(Box=''):
+    threadBoxAdd = threading.Thread(target=VagrantGest.VagrantBoxAdd, args=(Box, ))
+    threadBoxAdd.start()
+    return  jsonify("Se lanzo un hilo ejecutando la tarea\n")
+
+#curl http://localhost:8000/VagrantBoxRemove/ubuntu/trusty64
+@app.route('/VagrantBoxRemove/<path:Box>')
+def VagrantBoxRemove(Box=''):
+    return  jsonify(VagrantGest.VagrantBoxRemove(Box))
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0",  port=8000)
