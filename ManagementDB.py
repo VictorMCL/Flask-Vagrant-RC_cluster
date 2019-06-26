@@ -4,8 +4,6 @@ import os
 import envConfig
 from pprint import pprint
 
-VM = {"DB": {"Status" : "Not create", "Hipervisor" : "virtualbox"}}
-
 def Readjson():
     if os.path.isfile(envConfig.JSONFILE) == True:
         if checkDB():
@@ -111,12 +109,3 @@ def checkDB():
         return True
     else:
         return False
-
-
-#WriteElemt("Centos", VM)
-#ModifyElemt("Centos", "ProyectoCentos", VM)
-#DeleteElemt("ProyectoCentos")
-#Readjson()
-#RestoreDB()
-#ReadElemt('default')
-#StatusElemt('default')
