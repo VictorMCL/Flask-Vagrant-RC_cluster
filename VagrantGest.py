@@ -4,28 +4,7 @@ import os
 import envConfig
 import subprocess
 import ManagementDB
-import logging
-
-# Create a custom logger
-logger = logging.getLogger(__name__)
-
-# Create handlers
-c_handler = logging.FileHandler(envConfig.FILELOG)
-f_handler = logging.FileHandler(envConfig.FILELOG)
-
-c_handler.setLevel(logging.WARNING)
-f_handler.setLevel(logging.ERROR)
-
-# Create formatters and add it to handlers
-c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-f_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-c_handler.setFormatter(c_format)
-f_handler.setFormatter(f_format)
-
-# Add handlers to the logger
-logger.addHandler(c_handler)
-logger.addHandler(f_handler)
+import LogGest
 
 # Los posibles estados de una maquina son
 # not created, running, saved, poweroff
@@ -50,22 +29,27 @@ def VagrantStatus(NameProyect):
 
 # Este metodo es instanciado por medio de un Hilo.
 def VagrantUP(NameProyect, VM):
+    LogGest.WarningMSG("Levantamiento de VM: "+VM)
     os.chdir(envConfig.VAGRANTPROJECT+NameProyect)
     command = subprocess.Popen(["vagrant","up",VM],stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     while True:
         lines = command.stdout.readline()
         if not lines:
             break
-        print(lines.rstrip())
-    ManagementDB.WriteElemt(NameProyect, VagrantStatus(NameProyect))
+        print(lines.rstrip())        
     os.chdir(envConfig.HOME)
+    ManagementDB.WriteElemt(NameProyect, VagrantStatus(NameProyect))    
 
-def VagrantHalt(NameProyect, VMs):
+def VagrantHalt(NameProyect, VM):
     os.chdir(envConfig.VAGRANTPROJECT+NameProyect)
-    myCmd = os.popen("vagrant halt " + VMs).read()
-    ManagementDB.WriteElemt(NameProyect, VagrantStatus(NameProyect))
+    command = subprocess.Popen(["vagrant","halt",VM],stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    while True:
+        lines = command.stdout.readline()
+        if not lines:
+            break
+        print(lines.rstrip())   
     os.chdir(envConfig.HOME)
-    return myCmd
+    ManagementDB.WriteElemt(NameProyect, VagrantStatus(NameProyect))
 
 def VagrantDestroy(NameProyect, VMs):
     os.chdir(envConfig.VAGRANTPROJECT+NameProyect)

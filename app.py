@@ -67,12 +67,12 @@ def statusProyect(NameProyect='default'):
 @app.route('/LevantarVM')
 @app.route('/LevantarVM/<NameProyect>')
 @app.route('/LevantarVM/<NameProyect>/<VMs>')
-def levantarVM(NameProyect='default', VMs='node-1'):
+def levantarVM(NameProyect='default', VMs=''):
     if ManagementDB.ReadElemt(NameProyect) == True:
         if VagrantGest.CheckVagrant(NameProyect):
             threadUP = threading.Thread(target=VagrantGest.VagrantUP, args=(NameProyect, VMs))
             threadUP.start()
-            return 'Se esta creando la maquina\n'
+            return 'Levantando maquinas virtuales...\n'
         else:
             return 'Existe en DB y pero no hay Vagrantfile\n'
     else:
@@ -85,8 +85,9 @@ def levantarVM(NameProyect='default', VMs='node-1'):
 def ApagarVM(NameProyect='default', VMs=''):
     if ManagementDB.ReadElemt(NameProyect) == True:
         if VagrantGest.CheckVagrant(NameProyect):
-            return VagrantGest.VagrantHalt(NameProyect, VMs)
-            return ManagementDB.WriteElemt(NameProyect, VagrantGest.VagrantStatus(NameProyect))
+            ApagarVM = threading.Thread(target=VagrantGest.VagrantHalt, args=(NameProyect, VMs))
+            ApagarVM.start()
+            return 'Apagando maquinas virtuales...\n'
         else:
             return 'Existe en DB y pero no hay Vagrantfile\n'
     else:
