@@ -107,3 +107,52 @@ def VagrantBoxRemove(VM):
     myCmd = os.popen("vagrant box remove " + VM).read()
     return myCmd
 
+def ID_VM(NameProyect, VM):
+    with open(envConfig.VAGRANTPROJECT+NameProyect+"/.vagrant/machines/"+VM+"/virtualbox/action_provision", 'r') as file_proyect:
+        for linea in file_proyect.readlines():
+            id = linea.split(":")
+            return (id[1]) 
+
+def Info_VM(NameProyect, VM):
+    Datos_Json={}
+    dic = {}
+    Port_Forwar = {}
+    i = 1
+    x = 0
+    StatusGlobal = os.popen("vboxmanage showvminfo " + ID_VM(NameProyect, VM) +
+     " | egrep 'Name|Guest OS|Memory size|CPU exec cap|Number of CPUs|NIC|Rule' "+
+     "| egrep -v 'disable|Storage Controller|machine mapping|Settings' | tr -s ' '").read()
+    lineas = StatusGlobal.split("\n")
+    lineas.pop(len(lineas)-1)
+    for linea in lineas:
+        if "NIC " in linea:
+            if "NIC "+str(i)+": " in linea:
+                v = linea.split("NIC "+str(i)+": ")[1]
+                c = v.split(",")
+                for dato in c:
+                    if "Attachment" in dato:
+                        llave_r = dato.split(":")[0]
+                        valor_r = dato.split(":")[1]
+                        dic["NIC "+str(i)]={"Attachment": valor_r.split(' ', 1)[1]}
+                i += 1
+            if "Rule" in linea:
+                f = linea.split(" Rule("+str(x)+"):")
+                #print (f[1])
+                for dato_r in f[1].split(","):
+                    llave_w = dato_r.split(" = ")[0]
+                    valor_w = dato_r.split(" = ")[1]
+                    #print (llave_w.split(' ', 1)[1])
+                    Port_Forwar["Port forwarding "+str(x+1)]={llave_w.split(' ', 1)[1]: valor_w}
+                #print (Port_Forwar)
+                x += 1
+        else:
+            llave = linea.split(":")[0]
+            valor = linea.split(":")[1]
+            Datos_Json[llave]=valor.split(' ', 1)[1]
+    print (Port_Forwar)
+    print (dic)
+    #print (Datos_Json)
+    #print(StatusGlobal)
+ 
+
+Info_VM("ubuntu", "node-2")
