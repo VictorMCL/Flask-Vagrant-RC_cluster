@@ -117,6 +117,7 @@ def Info_VM(NameProyect, VM):
     Datos_Json={}
     dic = {}
     Port_Forwar = {}
+    Port = {}
     i = 1
     x = 0
     StatusGlobal = os.popen("vboxmanage showvminfo " + ID_VM(NameProyect, VM) +
@@ -136,22 +137,23 @@ def Info_VM(NameProyect, VM):
                         dic["NIC "+str(i)]={"Attachment": valor_r.split(' ', 1)[1]}
                 i += 1
             if "Rule" in linea:
-                f = linea.split(" Rule("+str(x)+"):")
-                #print (f[1])
-                for dato_r in f[1].split(","):
+                f = linea.split(" Rule("+str(x)+"): ")
+                for dato_r in f[1].split(", "):
                     llave_w = dato_r.split(" = ")[0]
                     valor_w = dato_r.split(" = ")[1]
-                    #print (llave_w.split(' ', 1)[1])
-                    Port_Forwar["Port forwarding "+str(x+1)]={llave_w.split(' ', 1)[1]: valor_w}
-                #print (Port_Forwar)
+                    Port.update({llave_w: valor_w})
+                Port_Forwar["Port forwarding "+str(x+1)]={}
+                Port_Forwar["Port forwarding "+str(x+1)].update(Port)
+                dic[f[0]].update(Port_Forwar)
                 x += 1
         else:
             llave = linea.split(":")[0]
             valor = linea.split(":")[1]
             Datos_Json[llave]=valor.split(' ', 1)[1]
-    print (Port_Forwar)
-    print (dic)
-    #print (Datos_Json)
+    Datos_Json.update({"Red":dic})
+    #print (Port_Forwar)
+    #print (dic)
+    print (Datos_Json)
     #print(StatusGlobal)
  
 
