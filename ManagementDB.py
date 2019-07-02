@@ -22,15 +22,15 @@ def WriteElemt(elementNEW, VM_status):
     data = {}
     if os.path.isfile(envConfig.JSONFILE) == True:
         if checkDB():
-            data[elementNEW] = []
-            data[elementNEW].append({'Proyecto': elementNEW, 'Ruta': envConfig.VAGRANTPROJECT + elementNEW, 'VMs': VM_status})    
+            data[elementNEW] = {}
+            data[elementNEW] = {'Proyecto': elementNEW, 'Ruta': envConfig.VAGRANTPROJECT + elementNEW, 'VMs': VM_status}    
             with open(envConfig.JSONFILE, 'w') as file_dest:
                 json.dump(data, file_dest, sort_keys=True, indent=4)
         else:
             with open(envConfig.JSONFILE, 'r') as file_orig:    
                 data = json.load(file_orig)
-                data[elementNEW] = []
-                data[elementNEW].append({'Proyecto': elementNEW, 'Ruta': envConfig.VAGRANTPROJECT + elementNEW, 'VMs': VM_status})    
+                data[elementNEW] = {}
+                data[elementNEW] = {'Proyecto': elementNEW, 'Ruta': envConfig.VAGRANTPROJECT + elementNEW, 'VMs': VM_status}    
             with open(envConfig.JSONFILE, 'w') as file_dest:
                 json.dump(data, file_dest, sort_keys=True, indent=4)
     else:
@@ -56,8 +56,8 @@ def ModifyElemt(elementDEL, elementNEW, VM_status):
             data = json.load(file_check)
             if elementDEL in data:
                 del data[elementDEL]
-                data[elementNEW] = []
-                data[elementNEW].append({'Proyecto': elementNEW, 'Ruta': envConfig.VAGRANTPROJECT + elementNEW, 'VMs': VM_status})    
+                data[elementNEW] = {}
+                data[elementNEW] = {'Proyecto': elementNEW, 'Ruta': envConfig.VAGRANTPROJECT + elementNEW, 'VMs': VM_status}    
                 with open(envConfig.JSONFILE, 'w') as file_dest:
                     json.dump(data, file_dest, sort_keys=True, indent=4)
                 if elementDEL == elementNEW:
