@@ -192,7 +192,15 @@ def VagrantDestroy(NameProyect, VMs):
         myCmd = os.popen("vagrant destroy " + VMs + " -f").read()
     ManagementDB.WriteElemt(NameProyect, VagrantStatus(NameProyect))
     os.chdir(envConfig.HOME)
-    # Organizar retorno de respuestas
     return myCmd
 
-#VagrantStatus("ubuntu")   
+def GetMemRAM():
+    RAM = {}
+    GetRAM = os.popen("cat /proc/meminfo | egrep 'MemFree|MemTotal' | tr -s ' '").read()
+    lineas = GetRAM.split("\n")
+    lineas.pop(len(lineas)-1)
+    for linea in lineas:
+        llave = linea.split(": ")[0]
+        valor = (linea.split(": ")[1]).split(" ")[0]
+        RAM.setdefault(llave, valor)
+    return RAM   
