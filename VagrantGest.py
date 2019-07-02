@@ -60,7 +60,31 @@ def IDVM(NameProyect, VM):
             id = linea.split(":")
             return (id[1]) 
 
-def InfoVM(NameProyect, VM):
+def GetIP(NameProyect, VM, NIC):
+    interfaz = {}
+    interfaz = interfaz.fromkeys(['IP','Netmask','Interface','MAC'])
+    StatusGlobal = os.popen("VBoxManage guestproperty enumerate "+ IDVM(NameProyect, VM) +
+    "  | grep 'Net/"+str(int(NIC)-1)+"' | egrep -v 'Count|Broadcast|Status'").read()
+    lineas = StatusGlobal.split("\n")
+    lineas.pop(len(lineas)-1)
+    for linea in lineas:
+        if "V4/IP" in linea:
+            valor = (linea.split("Name: /VirtualBox/GuestInfo/Net/"+str(int(NIC)-1)+"/V4/IP, value: ")[1]).split(",")[0]
+            interfaz['IP']=valor
+        if "Netmask" in linea:
+            valor = (linea.split("Name: /VirtualBox/GuestInfo/Net/"+str(int(NIC)-1)+"/V4/Netmask, value: ")[1]).split(",")[0]
+            interfaz['Netmask']=valor
+        if "MAC" in linea:
+            valor = (linea.split("Name: /VirtualBox/GuestInfo/Net/"+str(int(NIC)-1)+"/MAC, value: ")[1]).split(",")[0]
+            interfaz['MAC']=valor
+        if "Net/"+str(int(NIC)-1)+"/Name" in linea:
+            valor = (linea.split("Name: /VirtualBox/GuestInfo/Net/"+str(int(NIC)-1)+"/Name, value: ")[1]).split(",")[0]
+            interfaz['Interface']=valor
+    return(interfaz)
+
+#GetIP("ubuntu", "node-1", str(2))
+
+def InfoVM(NameProyect, VM, Status):
     Datos_Json={}
     dic = {}
     Port_Forwar = {}
@@ -81,7 +105,10 @@ def InfoVM(NameProyect, VM):
                     if "Attachment" in dato:
                         llave_r = dato.split(":")[0]
                         valor_r = dato.split(":")[1]
-                        dic["NIC "+str(i)]={"Attachment": valor_r.split(' ', 1)[1]}
+                        if Status == "running":
+                            dic["NIC "+str(i)]={"Attachment": valor_r.split(' ', 1)[1],"Ifconfig": GetIP(NameProyect, VM, str(i))}
+                        else:
+                            dic["NIC "+str(i)]={"Attachment": valor_r.split(' ', 1)[1],"Ifconfig": "None"}
                 i += 1
             if "Rule" in linea:
                 f = linea.split(" Rule("+str(x)+"): ")
@@ -123,7 +150,7 @@ def VagrantStatus(NameProyect):
             VMs[data[0]]={}
             VMs[data[0]].update(info_VM)
         else:
-            info_VM=(InfoVM(NameProyect, data[0]))
+            info_VM=(InfoVM(NameProyect, data[0], data[1]))
             info_VM["Machine status"]=data[1]
             info_VM["Hipervisor"]=data[2]
             VMs[data[0]]={}
