@@ -57,9 +57,9 @@ def deleteProyect(NameProyect='default'):
     else:
         return 'No existe en DB\n'
 
-#curl http://localhost:8000/StatusProyecto
-@app.route('/StatusProyecto')
-@app.route('/StatusProyecto/<NameProyect>')
+#curl http://localhost:8000/StatusProyect
+@app.route('/StatusProyect')
+@app.route('/StatusProyect/<NameProyect>')
 def statusProyect(NameProyect='default'):
     return  jsonify(ManagementDB.StatusElemt(NameProyect))
 
@@ -103,8 +103,6 @@ def deleteVM(NameProyect='default', VMs=''):
             if VagrantGest.VmCreated(NameProyect)!='0':
             #1) Se destruyen maquinas
                 VagrantGest.VagrantDestroy(NameProyect, VMs)
-            #2) Actualizar DB
-                ManagementDB.ModifyElemt(NameProyect, NameProyect, VagrantGest.VagrantStatus(NameProyect))
             #3) Respuesta
                 return 'Del proyecto: ' + NameProyect + ' se elimino ' + VMs + '\n'
             else:

@@ -8,59 +8,6 @@ import LogGest
 
 # Los posibles estados de una maquina son
 # not created, running, saved, poweroff
-def VagrantStatus(NameProyect):
-    VMs = {}
-    os.chdir(envConfig.VAGRANTPROJECT+NameProyect)
-    myCmd = os.popen("vagrant status | grep \) | tr -s ' '").read()
-    lineas = myCmd.split("\n")
-    lineas.pop(len(lineas)-1)
-    for linea in lineas:
-        data = linea.split()
-        if 'not created' in linea:
-            VM = {data[0]:{"Status" : "not created", "Hipervisor" : data[3]}}
-            VMs.update(VM) 
-        else:
-            VM = {data[0]:{"Status" : data[1], "Hipervisor" : data[2]}}
-            VMs.update(VM)
-    os.chdir(envConfig.HOME)
-    return VMs
-
-#-----------------------------------Gestion de VM-----------------------------------------
-
-# Este metodo es instanciado por medio de un Hilo.
-def VagrantUP(NameProyect, VM):
-    LogGest.WarningMSG("Levantamiento de VM: "+VM)
-    os.chdir(envConfig.VAGRANTPROJECT+NameProyect)
-    command = subprocess.Popen(["vagrant","up",VM],stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    while True:
-        lines = command.stdout.readline()
-        if not lines:
-            break
-        print(lines.rstrip())        
-    os.chdir(envConfig.HOME)
-    ManagementDB.WriteElemt(NameProyect, VagrantStatus(NameProyect))    
-
-def VagrantHalt(NameProyect, VM):
-    os.chdir(envConfig.VAGRANTPROJECT+NameProyect)
-    command = subprocess.Popen(["vagrant","halt",VM],stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    while True:
-        lines = command.stdout.readline()
-        if not lines:
-            break
-        print(lines.rstrip())   
-    os.chdir(envConfig.HOME)
-    ManagementDB.WriteElemt(NameProyect, VagrantStatus(NameProyect))
-
-def VagrantDestroy(NameProyect, VMs):
-    os.chdir(envConfig.VAGRANTPROJECT+NameProyect)
-    if (VMs == ''):
-        myCmd = os.popen("vagrant destroy -f").read()
-    else:
-        myCmd = os.popen("vagrant destroy " + VMs + " -f").read()
-    ManagementDB.WriteElemt(NameProyect, VagrantStatus(NameProyect))
-    os.chdir(envConfig.HOME)
-    # Organizar retorno de respuestas
-    return myCmd
 
 #-----------------------------------Chequeo de VM-----------------------------------------
     
@@ -107,20 +54,20 @@ def VagrantBoxRemove(VM):
     myCmd = os.popen("vagrant box remove " + VM).read()
     return myCmd
 
-def ID_VM(NameProyect, VM):
+def IDVM(NameProyect, VM):
     with open(envConfig.VAGRANTPROJECT+NameProyect+"/.vagrant/machines/"+VM+"/virtualbox/action_provision", 'r') as file_proyect:
         for linea in file_proyect.readlines():
             id = linea.split(":")
             return (id[1]) 
 
-def Info_VM(NameProyect, VM):
+def InfoVM(NameProyect, VM):
     Datos_Json={}
     dic = {}
     Port_Forwar = {}
     Port = {}
     i = 1
     x = 0
-    StatusGlobal = os.popen("vboxmanage showvminfo " + ID_VM(NameProyect, VM) +
+    StatusGlobal = os.popen("vboxmanage showvminfo " + IDVM(NameProyect, VM) +
      " | egrep 'Name|Guest OS|Memory size|CPU exec cap|Number of CPUs|NIC|Rule' "+
      "| egrep -v 'disable|Storage Controller|machine mapping|Settings' | tr -s ' '").read()
     lineas = StatusGlobal.split("\n")
@@ -149,12 +96,76 @@ def Info_VM(NameProyect, VM):
         else:
             llave = linea.split(":")[0]
             valor = linea.split(":")[1]
-            Datos_Json[llave]=valor.split(' ', 1)[1]
+            Datos_Json.setdefault(llave, valor.split(' ', 1)[1])
     Datos_Json.update({"Red":dic})
-    #print (Port_Forwar)
-    #print (dic)
-    print (Datos_Json)
-    #print(StatusGlobal)
+    return (Datos_Json)
  
+def VagrantStatus(NameProyect):
+    VMs = {}
+    info_VM = {}
+    info_VM = info_VM.fromkeys(['Name','Guest OS','Machine status',
+    'Hipervisor','Memory size','Number of CPUs','CPU exec cap','Red'],'pending')
+    os.chdir(envConfig.VAGRANTPROJECT+NameProyect)
+    myCmd = os.popen("vagrant status | grep \) | tr -s ' '").read()
+    lineas = myCmd.split("\n")
+    lineas.pop(len(lineas)-1)
+    for linea in lineas:
+        data = linea.split()
+        if 'not created' in linea:
+            info_VM['Name']="pending"
+            info_VM['Guest OS']="pending"
+            info_VM['Memory size']="pending"
+            info_VM['Number of CPUs']="pending"
+            info_VM['CPU exec cap']="pending"
+            info_VM['Red']="pending"
+            info_VM['Machine status']="not created"
+            info_VM["Hipervisor"]=data[3]
+            VMs[data[0]]={}
+            VMs[data[0]].update(info_VM)
+        else:
+            info_VM=(InfoVM(NameProyect, data[0]))
+            info_VM["Machine status"]=data[1]
+            info_VM["Hipervisor"]=data[2]
+            VMs[data[0]]={}
+            VMs[data[0]].update(info_VM)
+    os.chdir(envConfig.HOME)
+    return VMs
 
-Info_VM("ubuntu", "node-2")
+#-----------------------------------Gestion de VM-----------------------------------------
+
+# Este metodo es instanciado por medio de un Hilo.
+def VagrantUP(NameProyect, VM):
+    LogGest.WarningMSG("Levantamiento de VM: "+VM)
+    os.chdir(envConfig.VAGRANTPROJECT+NameProyect)
+    command = subprocess.Popen(["vagrant","up",VM],stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    while True:
+        lines = command.stdout.readline()
+        if not lines:
+            break
+        print(lines.rstrip())        
+    os.chdir(envConfig.HOME)
+    ManagementDB.WriteElemt(NameProyect, VagrantStatus(NameProyect))    
+
+def VagrantHalt(NameProyect, VM):
+    os.chdir(envConfig.VAGRANTPROJECT+NameProyect)
+    command = subprocess.Popen(["vagrant","halt",VM],stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    while True:
+        lines = command.stdout.readline()
+        if not lines:
+            break
+        print(lines.rstrip())   
+    os.chdir(envConfig.HOME)
+    ManagementDB.WriteElemt(NameProyect, VagrantStatus(NameProyect))
+
+def VagrantDestroy(NameProyect, VMs):
+    os.chdir(envConfig.VAGRANTPROJECT+NameProyect)
+    if (VMs == ''):
+        myCmd = os.popen("vagrant destroy -f").read()
+    else:
+        myCmd = os.popen("vagrant destroy " + VMs + " -f").read()
+    ManagementDB.WriteElemt(NameProyect, VagrantStatus(NameProyect))
+    os.chdir(envConfig.HOME)
+    # Organizar retorno de respuestas
+    return myCmd
+
+#VagrantStatus("ubuntu")   
