@@ -140,5 +140,10 @@ def VagrantBoxAdd(Box=''):
 def VagrantBoxRemove(Box=''):
     return  jsonify(VagrantGest.VagrantBoxRemove(Box))
 
+#curl http://localhost:8000/ObtenerRAM
+@app.route('/ObtenerRAM')
+def ObtenerRAM():
+    return jsonify(VagrantGest.GetMemRAM())
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0",  port=8000)
