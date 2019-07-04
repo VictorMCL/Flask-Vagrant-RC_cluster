@@ -82,8 +82,6 @@ def GetIP(NameProyect, VM, NIC):
             interfaz['Interface']=valor
     return(interfaz)
 
-#GetIP("ubuntu", "node-1", str(2))
-
 def InfoVM(NameProyect, VM, Status):
     Datos_Json={}
     dic = {}
@@ -186,13 +184,20 @@ def VagrantHalt(NameProyect, VM):
 
 def VagrantDestroy(NameProyect, VMs):
     os.chdir(envConfig.VAGRANTPROJECT+NameProyect)
-    if (VMs == ''):
-        myCmd = os.popen("vagrant destroy -f").read()
-    else:
-        myCmd = os.popen("vagrant destroy " + VMs + " -f").read()
-    ManagementDB.WriteElemt(NameProyect, VagrantStatus(NameProyect))
+    command = subprocess.Popen(["vagrant","destroy",VMs,"-f"],stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    while True:
+        lines = command.stdout.readline()
+        if not lines:
+            break
+        print(lines.rstrip())
     os.chdir(envConfig.HOME)
-    return myCmd
+    ManagementDB.WriteElemt(NameProyect, VagrantStatus(NameProyect))
+
+def VagrantDestroyProyect(NameProyect):
+    os.chdir(envConfig.VAGRANTPROJECT+NameProyect)
+    command = os.popen("vagrant destroy -f").read()
+    print (command)
+    os.chdir(envConfig.HOME)
 
 def GetMemRAM():
     RAM = {}

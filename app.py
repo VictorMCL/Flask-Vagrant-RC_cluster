@@ -40,16 +40,11 @@ def deleteProyect(NameProyect='default'):
     if ManagementDB.ReadElemt(NameProyect) == True:
         if VagrantGest.CheckVagrant(NameProyect):
             if VagrantGest.VmCreated(NameProyect)!='0':
-            #1) Se destruyen maquinas
-                VagrantGest.VagrantDestroy(NameProyect, '')
-            #2) Se elimina folder
+                VagrantGest.VagrantDestroyProyect(NameProyect)
                 rmtree(path)
-            #3) Se actualiza la DB
                 ManagementDB.DeleteElemt(NameProyect)
             else:
-            #1) Se elimina folder
                 rmtree(path)
-            #2) Se actualiza la DB
                 ManagementDB.DeleteElemt(NameProyect)
             return jsonify('El proyecto: ' + NameProyect + ' se elimino de DB\n')
         else:
@@ -102,9 +97,10 @@ def deleteVM(NameProyect='default', VMs=''):
         if VagrantGest.CheckVagrant(NameProyect):
             if VagrantGest.VmCreated(NameProyect)!='0':
             #1) Se destruyen maquinas
-                VagrantGest.VagrantDestroy(NameProyect, VMs)
+                DestroyVM = threading.Thread(target=VagrantGest.VagrantDestroy, args=(NameProyect, VMs))
+                DestroyVM.start()
             #3) Respuesta
-                return jsonify('Del proyecto: ' + NameProyect + ' se elimino ' + VMs + '\n')
+                return jsonify('Borrando maquinas virtualies...')
             else:
             #3) Respuesta
                 return jsonify('El proyecto: ' + NameProyect + ' no tiene VM creadas\n')
